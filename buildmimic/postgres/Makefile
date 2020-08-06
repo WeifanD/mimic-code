@@ -1,6 +1,7 @@
 # Config
-PHYSIONETURL=https://physionet.org/works/MIMICIIIClinicalDatabase/files/
+PHYSIONETURL=https://physionet.org/files/mimiciii/1.4/
 PHYSIONETDEMOURL=https://physionet.org/works/MIMICIIIClinicalDatabaseDemo/
+# datadir=/data/mdata/data/physionet.org/files/mimiciii/1.4/
 
 # Ensure that datadir ends in a slash
 DATADIR := $(dir $(datadir))
@@ -90,14 +91,15 @@ mimic-build-gz:
 	@echo '---------------------'
 	@echo ''
 	@sleep 2
-	psql "$(DBSTRING)" -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS $(DBSCHEMA); CREATE SCHEMA $(DBSCHEMA);"
+	## psql "$(DBSTRING)" -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS $(DBSCHEMA); CREATE SCHEMA $(DBSCHEMA);"
+	psql "$(DBSTRING)" -v ON_ERROR_STOP=1 -c "set search_path to $(DBSCHEMA);"
 	@echo ''
 	@echo '---------------------'
 	@echo '-- Creating tables --'
 	@echo '---------------------'
 	@echo ''
 	@sleep 2
-	psql "$(DBSTRING)" -v ON_ERROR_STOP=1 -f postgres_create_tables$(PSQL_MAJOR_VERSION).sql
+	--psql "$(DBSTRING)" -v ON_ERROR_STOP=1 -f postgres_create_tables$(PSQL_MAJOR_VERSION).sql
 	@echo ''
 	@echo '------------------'
 	@echo '-- Loading data --'
@@ -184,7 +186,7 @@ ifeq ("$(physionetuser)","")
 	@echo 'Call the makefile again with physionetuser=<USERNAME>'
 	@echo ' e.g. make eicu-download datadir=/path/to/data physionetuser=hello@physionet.org'
 else
-	wget --user $(physionetuser) --ask-password -P $(DATADIR) -A csv.gz -m -p -E -k -K -np -nd "$(PHYSIONETURL)"
+	wget "$(PHYSIONETURL)" --user $(physionetuser) --ask-password -P $(DATADIR) -r -N -c -np
 endif
 
 mimic-demo-download:
